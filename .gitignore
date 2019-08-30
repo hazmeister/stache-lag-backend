@@ -2,3 +2,4 @@
 target/
 positions.json
 *.iml
+docker-start-mysql.sh

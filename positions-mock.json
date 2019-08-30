@@ -1,0 +1,80 @@
+{
+  "teams": [
+    {
+      "positions": [
+        {
+          "alert": false,
+          "altitude": 18,
+          "type": "automatic",
+          "dtfKm": 0,
+          "id": 44148875,
+          "gpsAt": "2017-12-07T12:00:00Z",
+          "sogKnots": 0,
+          "battery": 56,
+          "cog": 44,
+          "dtfNm": 0,
+          "txAt": "2017-12-07T12:02:33Z",
+          "longitude": -60.94975,
+          "latitude": 14.07726,
+          "gpsAtMillis": 1512648000000,
+          "sogKmph": 0
+        },
+        {
+          "alert": false,
+          "altitude": 12,
+          "type": "automatic",
+          "dtfKm": 4981.635,
+          "id": 43673920,
+          "gpsAt": "2017-11-19T11:00:00Z",
+          "sogKnots": 0,
+          "battery": 93,
+          "cog": 23,
+          "dtfNm": 2689.867,
+          "txAt": "2017-11-19T11:00:11Z",
+          "longitude": -15.42632,
+          "latitude": 28.12884,
+          "gpsAtMillis": 1511089200000,
+          "sogKmph": 0
+        },
+        {
+          "alert": false,
+          "altitude": 17,
+          "type": "automatic",
+          "dtfKm": 4981.635,
+          "id": 43672771,
+          "gpsAt": "2017-11-19T10:00:00Z",
+          "sogKnots": 0,
+          "battery": 93,
+          "cog": 138,
+          "dtfNm": 2689.867,
+          "txAt": "2017-11-19T10:00:32Z",
+          "longitude": -15.42633,
+          "latitude": 28.12882,
+          "gpsAtMillis": 1511085600000,
+          "sogKmph": 0
+        },
+        {
+          "alert": false,
+          "altitude": 10,
+          "type": "automatic",
+          "dtfKm": 4981.635,
+          "id": 43671152,
+          "gpsAt": "2017-11-19T09:00:06Z",
+          "sogKnots": 0,
+          "battery": 94,
+          "cog": 151,
+          "dtfNm": 2689.867,
+          "txAt": "2017-11-19T09:00:16Z",
+          "longitude": -15.42635,
+          "latitude": 28.12884,
+          "gpsAtMillis": 1511082006000,
+          "sogKmph": 0
+        }
+      ],
+      "marker": 222,
+      "name": "Rock 7",
+      "serial": 6251
+    }
+  ],
+  "raceUrl": "test2017"
+}

@@ -1,5 +1,10 @@
+import model.Response;
+
+import static util.JSONParser.parseJSONFile;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Starting from scratch");
+        Response response = parseJSONFile("positions.json");
+        System.out.println(response.getRaceUrl());
     }
 }
