@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,7 +78,11 @@ public class MySQLHelper {
 
     private static void createTeamsTable() {
         System.out.println("Create teams table");
-        String query = "CREATE TABLE teams (name VARCHAR(64), marker INT, serial INT, PRIMARY KEY (serial))";
+        String query = "CREATE TABLE teams (" +
+                "name VARCHAR(64)," +
+                "marker INT," +
+                "serial INT," +
+                "PRIMARY KEY (serial))";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.execute();
@@ -91,7 +96,20 @@ public class MySQLHelper {
         System.out.println("Create positions table");
         String query = "CREATE TABLE positions (" +
                 "id INT," +
-                "serial INT, latitude DOUBLE(8,5), longitude DOUBLE(8,5), alert BOOLEAN, " +
+                "serial INT," +
+                "gpsAt TIMESTAMP," +
+                "txAt TIMESTAMP," +
+                "latitude DOUBLE," +
+                "longitude DOUBLE," +
+                "altitude INT," +
+                "alert BOOLEAN," +
+                "type VARCHAR(9)," +
+                "dtfKm DOUBLE," +
+                "dtfNm DOUBLE," +
+                "sogKmph DOUBLE," +
+                "sogKnots DOUBLE," +
+                "battery INT," +
+                "cog INT," +
                 "PRIMARY KEY (id), FOREIGN KEY (serial) REFERENCES teams(serial))";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -107,7 +125,7 @@ public class MySQLHelper {
      */
     private static void populateTeams(List<Teams> teams) {
         System.out.println("Populating teams table");
-        String query = "INSERT INTO teams VALUES (?, ?, ?)";
+        String query = "INSERT INTO teams VALUES (" + parameterPlaceholder(3)+ ")";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             int i = 0;
@@ -130,7 +148,7 @@ public class MySQLHelper {
 
     private static void populatePositions(List<Teams> teams) {
         System.out.println("Populating positions table");
-        String query = "INSERT INTO positions VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO positions VALUES (" + parameterPlaceholder(15)+ ")";
         try{
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             for (Teams team : teams) {
@@ -141,9 +159,19 @@ public class MySQLHelper {
                 for (Positions position : positions) {
                     preparedStatement.setInt(1, position.getId());
                     preparedStatement.setInt(2, serial);
-                    preparedStatement.setDouble(3, position.getLatitude());
-                    preparedStatement.setDouble(4, position.getLongitude());
-                    preparedStatement.setBoolean(5, position.isAlert());
+                    preparedStatement.setTimestamp(3, position.getGpsAt());
+                    preparedStatement.setTimestamp(4, position.getTxAt());
+                    preparedStatement.setDouble(5, position.getLatitude());
+                    preparedStatement.setDouble(6, position.getLongitude());
+                    preparedStatement.setInt(7, position.getAltitude());
+                    preparedStatement.setBoolean(8, position.isAlert());
+                    preparedStatement.setString(9, position.getType());
+                    preparedStatement.setDouble(10, position.getDtfKm());
+                    preparedStatement.setDouble(11, position.getDtfNm());
+                    preparedStatement.setDouble(12, position.getSogKmph());
+                    preparedStatement.setDouble(13, position.getSogKnots());
+                    preparedStatement.setInt(14, position.getBattery());
+                    preparedStatement.setInt(15, position.getCog());
                     preparedStatement.addBatch();
                     i++;
                     if (i % 1000 == 0 || i == positions.size()) {
@@ -157,6 +185,10 @@ public class MySQLHelper {
             System.err.println("Failed to write positions to database");
             e.printStackTrace();
         }
+    }
+    
+    static String parameterPlaceholder(int parameters) {
+        return String.join(" ", Collections.nCopies(parameters - 1, "?,")) + " ?";
     }
 
     private static void dropTable(String table) {

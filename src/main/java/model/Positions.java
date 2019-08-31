@@ -1,19 +1,18 @@
 package model;
 
-import java.math.BigDecimal;
-import java.util.Date;
+import java.sql.Timestamp;
 
 public class Positions {
     private boolean alert;
     private int altitude;
     private String type;    //TODO: Make enum later, after finding the other values
-    private BigDecimal dtfKm;    //Distance to finish - Using BigDecimal for accuracy
-    private BigDecimal dtfNm;
+    private double dtfKm;    //Distance to finish
+    private double dtfNm;
     private int id;
-    private Date gpsAt;
+    private Timestamp gpsAt;
     private int battery;
     private int cog;
-    private Date txAt;
+    private Timestamp txAt;
     private double latitude;
     private double longitude;
     private long gpsAtMillis;
@@ -44,19 +43,19 @@ public class Positions {
         this.type = type;
     }
 
-    public BigDecimal getDtfKm() {
+    public double getDtfKm() {
         return dtfKm;
     }
 
-    public void setDtfKm(BigDecimal dtfKm) {
+    public void setDtfKm(double dtfKm) {
         this.dtfKm = dtfKm;
     }
 
-    public BigDecimal getDtfNm() {
+    public double getDtfNm() {
         return dtfNm;
     }
 
-    public void setDtfNm(BigDecimal dtfNm) {
+    public void setDtfNm(double dtfNm) {
         this.dtfNm = dtfNm;
     }
 
@@ -68,11 +67,11 @@ public class Positions {
         this.id = id;
     }
 
-    public Date getGpsAt() {
+    public Timestamp getGpsAt() {
         return gpsAt;
     }
 
-    public void setGpsAt(Date gpsAt) {
+    public void setGpsAt(Timestamp gpsAt) {
         this.gpsAt = gpsAt;
     }
 
@@ -100,11 +99,11 @@ public class Positions {
         this.cog = cog;
     }
 
-    public Date getTxAt() {
+    public Timestamp getTxAt() {
         return txAt;
     }
 
-    public void setTxAt(Date txAt) {
+    public void setTxAt(Timestamp txAt) {
         this.txAt = txAt;
     }
 
