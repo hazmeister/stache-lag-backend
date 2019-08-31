@@ -1,0 +1,1 @@
+docker run --rm --name mysql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=example -e  MYSQL_DATABASE=stachelag -d mysql:8
