@@ -11,12 +11,11 @@ import static java.nio.charset.StandardCharsets.*;
 
 public class JSONParser {
 
-    public static Payload parseJSONFile(String filename) {
+    public static Payload parseJSONFile(File jsonFile) {
         Payload payload = null;
         JsonReader reader = null;
         try {
-            File positionJsonFile = new File(filename);
-            InputStream stream = new FileInputStream(positionJsonFile);
+            InputStream stream = new FileInputStream(jsonFile);
             reader = new JsonReader(new BufferedReader(new InputStreamReader(stream, UTF_8)));
             Gson gson = new GsonBuilder().create();
             payload = gson.fromJson(reader, Payload.class);
