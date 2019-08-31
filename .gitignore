@@ -3,4 +3,3 @@ target/
 positions.json
 positions-pretty.json
 *.iml
-docker-start-mysql.sh

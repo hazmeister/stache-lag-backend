@@ -11,6 +11,12 @@ import static java.nio.charset.StandardCharsets.*;
 
 public class JSONParser {
 
+    /**
+     * With thanks to http://www.acuriousanimal.com/2015/10/23/reading-json-file-in-stream-mode-with-gson.html
+     * and https://stackoverflow.com/a/19177892/5603509
+     * @param jsonFile race data to parse
+     * @return POJO of race data
+     */
     public static Payload parseJSONFile(File jsonFile) {
         Payload payload = null;
         JsonReader reader = null;

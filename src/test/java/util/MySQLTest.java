@@ -1,14 +1,18 @@
+package util;
+
 import model.Payload;
+import org.junit.Test;
 
 import java.io.File;
 
 import static util.JSONParser.parseJSONFile;
 import static util.MySQLHelper.populateDatabase;
 
-public class Main {
-    public static void main(String[] args) {
-        //TODO: Unzip file
-        File file = new File("positions.json");
+public class MySQLTest {
+
+    @Test
+    public void connectLocally() {
+        File file = new File("src/test/resources/positions-mock.json");
         Payload payload = parseJSONFile(file);
         populateDatabase(payload);
     }
