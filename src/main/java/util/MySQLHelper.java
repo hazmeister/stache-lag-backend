@@ -89,6 +89,7 @@ public class MySQLHelper {
             connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+            System.exit(100);
         }
     }
 
@@ -117,6 +118,7 @@ public class MySQLHelper {
             connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+            System.exit(100);
         }
     }
 
@@ -143,6 +145,7 @@ public class MySQLHelper {
         } catch (SQLException e) {
             System.err.println("Failed to write teams to database");
             e.printStackTrace();
+            System.exit(100);
         }
     }
 
@@ -184,6 +187,7 @@ public class MySQLHelper {
         } catch (SQLException e) {
             System.err.println("Failed to write positions to database");
             e.printStackTrace();
+            System.exit(100);
         }
     }
     
@@ -200,6 +204,7 @@ public class MySQLHelper {
             connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+            System.exit(100);
         }
     }
 }

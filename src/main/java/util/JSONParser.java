@@ -26,7 +26,9 @@ public class JSONParser {
             Gson gson = new GsonBuilder().create();
             payload = gson.fromJson(reader, Payload.class);
         } catch (IOException e) {
+            System.err.println("Failed to read JSON file");
             e.printStackTrace();
+            System.exit(100);
         } finally {
             if(reader != null) {
                 try {
@@ -34,6 +36,7 @@ public class JSONParser {
                 } catch (IOException e) {
                     System.err.println("Failed to close reader");
                     e.printStackTrace();
+                    System.exit(100);
                 }
             }
         }
