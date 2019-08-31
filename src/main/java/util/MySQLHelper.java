@@ -21,17 +21,24 @@ import static util.ConfigHelper.getConfig;
 public class MySQLHelper {
 
     private static Connection connection = null;
+    private static String tablePrefix = "";
 
     public static void populateDatabase(Payload payload) {
+        tablePrefix = payload.getRaceUrl() + "_";
+        String positionsTable = tablePrefix + "positions_";
+        String teamsTable = tablePrefix + "teams";
+
         connectToDatabase();
-        if(tableExists("positions")) {
-            dropTable("positions");
+        if(tableExists(positionsTable)) {
+            dropTable(positionsTable);
         }
-        if(tableExists("teams")) {
-            dropTable("teams");
+        if(tableExists(teamsTable)) {
+            dropTable(teamsTable);
         }
+
         createTeamsTable();
         populateTeams(payload.getTeams());
+
         createPositionsTable();
         populatePositions(payload.getTeams());
     }
@@ -78,7 +85,7 @@ public class MySQLHelper {
 
     private static void createTeamsTable() {
         System.out.println("Create teams table");
-        String query = "CREATE TABLE teams (" +
+        String query = "CREATE TABLE " + tablePrefix + "teams (" +
                 "name VARCHAR(64)," +
                 "marker INT," +
                 "serial INT," +
@@ -95,7 +102,7 @@ public class MySQLHelper {
 
     private static void createPositionsTable() {
         System.out.println("Create positions table");
-        String query = "CREATE TABLE positions (" +
+        String query = "CREATE TABLE " + tablePrefix + "positions (" +
                 "id INT," +
                 "serial INT," +
                 "gpsAt TIMESTAMP," +
@@ -111,7 +118,7 @@ public class MySQLHelper {
                 "sogKnots DOUBLE," +
                 "battery INT," +
                 "cog INT," +
-                "PRIMARY KEY (id), FOREIGN KEY (serial) REFERENCES teams(serial))";
+                "PRIMARY KEY (id), FOREIGN KEY (serial) REFERENCES " + tablePrefix + "teams(serial))";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.execute();
@@ -127,7 +134,7 @@ public class MySQLHelper {
      */
     private static void populateTeams(List<Teams> teams) {
         System.out.println("Populating teams table");
-        String query = "INSERT INTO teams VALUES (" + parameterPlaceholder(3)+ ")";
+        String query = "INSERT INTO " + tablePrefix + "teams VALUES (" + parameterPlaceholder(3)+ ")";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             int i = 0;
@@ -151,7 +158,7 @@ public class MySQLHelper {
 
     private static void populatePositions(List<Teams> teams) {
         System.out.println("Populating positions table");
-        String query = "INSERT INTO positions VALUES (" + parameterPlaceholder(15)+ ")";
+        String query = "INSERT INTO " + tablePrefix +"positions VALUES (" + parameterPlaceholder(15)+ ")";
         try{
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             for (Teams team : teams) {

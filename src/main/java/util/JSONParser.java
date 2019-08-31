@@ -18,6 +18,7 @@ public class JSONParser {
      * @return POJO of race data
      */
     public static Payload parseJSONFile(File jsonFile) {
+        System.out.println("Parsing JSON");
         Payload payload = null;
         JsonReader reader = null;
         try {
@@ -40,6 +41,7 @@ public class JSONParser {
                 }
             }
         }
+        System.out.println("Parsed race data for " + payload.getRaceUrl());
         return payload;
     }
 }

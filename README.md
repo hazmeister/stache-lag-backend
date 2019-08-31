@@ -13,3 +13,9 @@ A technical challenge for prospective backend developers at Rock 7 / YB Tracking
 We're looking for efficiency, readability and correctness.  Extra points if you can give us some other interesting insight into the data that we don't already know!
 
 Send us your resulting table, and your code, or better still, push it to a public git repo and send us a link.  Good luck!
+
+
+## Quickstart
+
+1. Setup MySQL using `docker-start-mysql.sh`. When the docker container is stopped (using `docker stop mysql`), it will delete itself.
+2. Run the main method from your IDE or `mvn exec:java`. 

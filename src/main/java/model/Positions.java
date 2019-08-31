@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class Positions {
     private boolean alert;
     private int altitude;
-    private String type;    //TODO: Make enum later, after finding the other values
+    private String type;
     private double dtfKm;    //Distance to finish
     private double dtfNm;
     private int id;
