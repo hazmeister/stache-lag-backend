@@ -2,7 +2,7 @@ package model;
 
 import java.util.List;
 
-public class Response {
+public class Payload {
     private List<Teams> teams;
     private String raceUrl;
 

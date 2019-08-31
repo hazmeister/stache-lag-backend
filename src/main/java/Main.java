@@ -1,10 +1,11 @@
-import model.Response;
+import model.Payload;
 
 import static util.JSONParser.parseJSONFile;
 
 public class Main {
     public static void main(String[] args) {
-        Response response = parseJSONFile("positions.json");
-        System.out.println(response.getRaceUrl());
+        Payload payload = parseJSONFile("positions.json");
+        System.out.println(payload.getRaceUrl());
+
     }
 }
