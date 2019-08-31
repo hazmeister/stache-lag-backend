@@ -23,11 +23,11 @@ public class MySQLHelper {
 
     public static void populateDatabase(Payload payload) {
         connectToDatabase();
-        if(tableExists("POSITIONS")) {
-            dropTable("POSITIONS");
+        if(tableExists("positions")) {
+            dropTable("positions");
         }
-        if(tableExists("TEAMS")) {
-            dropTable("TEAMS");
+        if(tableExists("teams")) {
+            dropTable("teams");
         }
         createTeamsTable();
         populateTeams(payload.getTeams());
@@ -52,6 +52,9 @@ public class MySQLHelper {
         }
     }
 
+    /**
+     * https://stackoverflow.com/a/8829109/5603509
+     */
     private static boolean tableExists(String table) {
         String query = "SELECT * FROM information_schema.tables WHERE table_schema = ? AND table_name = ? ";
         try {
@@ -73,8 +76,8 @@ public class MySQLHelper {
     }
 
     private static void createTeamsTable() {
-        System.out.println("Create TEAMS table");
-        String query = "CREATE TABLE TEAMS (name VARCHAR(64), marker INT, serial INT, PRIMARY KEY (serial))";
+        System.out.println("Create teams table");
+        String query = "CREATE TABLE teams (name VARCHAR(64), marker INT, serial INT, PRIMARY KEY (serial))";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.execute();
@@ -85,9 +88,11 @@ public class MySQLHelper {
     }
 
     private static void createPositionsTable() {
-        System.out.println("Create POSITIONS table");
-        String query = "CREATE TABLE POSITIONS ( id INT, serial INT, latitude DOUBLE(8,5), longitude DOUBLE(8,5), PRIMARY KEY (id),"
-                + "FOREIGN KEY (serial) REFERENCES TEAMS(serial))";
+        System.out.println("Create positions table");
+        String query = "CREATE TABLE positions (" +
+                "id INT," +
+                "serial INT, latitude DOUBLE(8,5), longitude DOUBLE(8,5), alert BOOLEAN, " +
+                "PRIMARY KEY (id), FOREIGN KEY (serial) REFERENCES teams(serial))";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.execute();
@@ -101,8 +106,8 @@ public class MySQLHelper {
      * With thanks to https://stackoverflow.com/a/4355097/5603509
      */
     private static void populateTeams(List<Teams> teams) {
-        System.out.println("Populating TEAMS table");
-        String query = "INSERT INTO TEAMS VALUES (?, ?, ?)";
+        System.out.println("Populating teams table");
+        String query = "INSERT INTO teams VALUES (?, ?, ?)";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             int i = 0;
@@ -124,12 +129,12 @@ public class MySQLHelper {
     }
 
     private static void populatePositions(List<Teams> teams) {
-        System.out.println("Populating POSITIONS table");
-        String query = "INSERT INTO POSITIONS VALUES (?, ?, ?, ?)";
+        System.out.println("Populating positions table");
+        String query = "INSERT INTO positions VALUES (?, ?, ?, ?, ?)";
         try{
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             for (Teams team : teams) {
-                System.out.println("Populating positions for team " + team.getName());
+                System.out.println(" * " + team.getName());
                 int i = 0;
                 int serial = team.getSerial();
                 List<Positions> positions = team.getPositions();
@@ -138,6 +143,7 @@ public class MySQLHelper {
                     preparedStatement.setInt(2, serial);
                     preparedStatement.setDouble(3, position.getLatitude());
                     preparedStatement.setDouble(4, position.getLongitude());
+                    preparedStatement.setBoolean(5, position.isAlert());
                     preparedStatement.addBatch();
                     i++;
                     if (i % 1000 == 0 || i == positions.size()) {
@@ -146,6 +152,7 @@ public class MySQLHelper {
                 }
             }
             connection.commit();
+            System.out.println("Positions data fully populated");
         } catch (SQLException e) {
             System.err.println("Failed to write positions to database");
             e.printStackTrace();
