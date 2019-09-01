@@ -4,16 +4,15 @@ import model.Payload;
 import model.Positions;
 import model.Teams;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.sql.*;
+import java.util.Date;
+import java.util.*;
 
 import static java.sql.DriverManager.getConnection;
+import static java.util.Calendar.*;
 import static util.ConfigHelper.getConfig;
+import static util.DateHelper.addFifteenMinutes;
+import static util.DistanceHelper.generateSightingData;
 
 /**
  * With thanks to https://crunchify.com/java-mysql-jdbc-hello-world-tutorial-create-connection-insert-data-and-retrieve-data-from-mysql/
@@ -21,14 +20,18 @@ import static util.ConfigHelper.getConfig;
 public class MySQLHelper {
 
     private static Connection connection = null;
-    private static String tablePrefix = "";
+    private static String tablePrefix = "arc2017_"; //TODO: read in from file when analysing data separately from import
 
     public static void populateDatabase(Payload payload) {
         tablePrefix = payload.getRaceUrl() + "_";
-        String positionsTable = tablePrefix + "positions_";
+        String positionsTable = tablePrefix + "positions";
         String teamsTable = tablePrefix + "teams";
+        String sightingsTable = tablePrefix + "sightings";
 
         connectToDatabase();
+        if(tableExists(sightingsTable)) {
+            dropTable(sightingsTable);
+        }
         if(tableExists(positionsTable)) {
             dropTable(positionsTable);
         }
@@ -37,13 +40,35 @@ public class MySQLHelper {
         }
 
         createTeamsTable();
-        populateTeams(payload.getTeams());
-
         createPositionsTable();
+        createSightingsTable();
+
+        populateTeams(payload.getTeams());
         populatePositions(payload.getTeams());
+        populateSightings(raceStart(), raceFinish());
     }
 
-    private static void connectToDatabase() {
+    /**
+     * TODO: Use query to fetch instead (needs rounding):
+     * SELECT MAX(txAt) FROM arc2017_positions;
+     */
+    private static Date raceStart() {
+        Calendar calendar = getInstance();
+        calendar.set(2017, NOVEMBER, 19, 8, 0, 0);
+        return new Date(calendar.getTimeInMillis());
+    }
+
+    /**
+     * TODO: Use query to fetch instead (needs rounding):
+     * SELECT MIN(txAt) FROM arc2017_positions;
+     */
+    private static Date raceFinish() {
+        Calendar calendar = getInstance();
+        calendar.set(2017, DECEMBER, 26, 20, 0, 0);
+        return new Date(calendar.getTimeInMillis());
+    }
+
+    static void connectToDatabase() {
         String username = getConfig("mysql.username");
         String password = getConfig("mysql.password");
         String connectionURL = "jdbc:mysql://" + getConfig("mysql.hostname") + ":"
@@ -129,6 +154,24 @@ public class MySQLHelper {
         }
     }
 
+    private static void createSightingsTable() {
+        System.out.println("Create sightings table");
+        String query = "CREATE TABLE " + tablePrefix + "sightings (" +
+                "serial INT," +
+                "serial_seen INT," +
+                "sightedAt TIMESTAMP," +
+                "FOREIGN KEY (serial) REFERENCES " + tablePrefix + "teams(serial)," +
+                "FOREIGN KEY (serial_seen) REFERENCES " + tablePrefix + "teams(serial))";
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.execute();
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(100);
+        }
+    }
+
     /**
      * With thanks to https://stackoverflow.com/a/4355097/5603509
      */
@@ -158,7 +201,7 @@ public class MySQLHelper {
 
     private static void populatePositions(List<Teams> teams) {
         System.out.println("Populating positions table");
-        String query = "INSERT INTO " + tablePrefix +"positions VALUES (" + parameterPlaceholder(15)+ ")";
+        String query = "INSERT INTO " + tablePrefix +"positions VALUES (" + parameterPlaceholder(15) + ")";
         try{
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             for (Teams team : teams) {
@@ -197,6 +240,17 @@ public class MySQLHelper {
             System.exit(100);
         }
     }
+
+    private static void populateSightings(Date raceStart, Date raceFinish) {
+        System.out.println("Populating sighting data:");
+        Date date = raceStart;
+        while(date.before(raceFinish)) {
+            System.out.println(" * Populating sighting at " + date);
+            List<Positions> moment = getPositionsForMoment(date);
+            generateSightingData(moment, date);
+            date = DateHelper.addFourHours(date);
+        }
+    }
     
     static String parameterPlaceholder(int parameters) {
         return String.join(" ", Collections.nCopies(parameters - 1, "?,")) + " ?";
@@ -213,5 +267,63 @@ public class MySQLHelper {
             e.printStackTrace();
             System.exit(100);
         }
+    }
+
+    /**
+     * @param date start of 15 minute range
+     * @return positions of all vessels that have reported within 15 minutes
+     */
+    static List<Positions> getPositionsForMoment(Date date) {
+        List<Positions> positions = new LinkedList<>();
+        Date dateInFifteenMinutes = addFifteenMinutes(date);
+        String query = "SELECT id, " + tablePrefix + "teams.serial, name, latitude, longitude, altitude\n" +
+                "FROM " + tablePrefix + "positions, " + tablePrefix + "teams\n" +
+                "WHERE (\n" +
+                "  gpsAt >= ?\n" +
+                "  AND gpsAt < ?\n" +
+                ") and type = 'automatic'\n" +
+                "AND " + tablePrefix + "teams.serial = " + tablePrefix + "positions.serial\n" +
+                "ORDER BY dtfKm";
+        try{
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setTimestamp(1, new Timestamp(date.getTime()));
+            preparedStatement.setTimestamp(2, new Timestamp(dateInFifteenMinutes.getTime()));
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                Positions position = new Positions();
+                position.setLatitude(resultSet.getDouble("latitude"));
+                position.setLongitude(resultSet.getDouble("longitude"));
+                position.setAltitude(resultSet.getInt("altitude"));
+                position.setTeamSerial(resultSet.getInt("serial"));
+                position.setTeamName(resultSet.getString("name"));
+                positions.add(position);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return positions;
+    }
+
+    static void writeSightingsToDB(Date sampleDate, int teamSerial, List<Positions> seen) {
+        String query = "INSERT INTO " + tablePrefix +"sightings VALUES(" + parameterPlaceholder(3)+ ")";
+        try{
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            int i = 0;
+            for (Positions each : seen) {
+                preparedStatement.setInt(1, teamSerial);
+                preparedStatement.setInt(2, each.getTeamSerial());
+                preparedStatement.setTimestamp(3, new Timestamp(sampleDate.getTime()));
+                preparedStatement.addBatch();
+                i++;
+                if (i % 1000 == 0 || i == seen.size()) {
+                    preparedStatement.executeBatch();
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 }

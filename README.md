@@ -6,7 +6,7 @@ A technical challenge for prospective backend developers at Rock 7 / YB Tracking
 
 2.  <del>Populate this information appropriately into a MySQL database for subsequent processing.</del>
 
-3.  Decide upon an effective method to determine the number of other vessels “visible” for a given moment. e.g. for each moment, decide the number of other vessels that would have been seen by a crew member on that vessel at that position/time (make any appropriate assumptions you need to).
+3.  <del>Decide upon an effective method to determine the number of other vessels “visible” for a given moment. e.g. for each moment, decide the number of other vessels that would have been seen by a crew member on that vessel at that position/time (make any appropriate assumptions you need to).</del>
 
 4.  Output a summary table showing average number of sightings per vessel, per day.  For example, it should be possible to make conclusions such as "On day 6 of the rally, a vessel is likely to see 5 other vessels during the day" and "On the day before they finish, a typical vessel is likely to see 4 other vessels".
 
@@ -18,4 +18,5 @@ Send us your resulting table, and your code, or better still, push it to a publi
 ## Quickstart
 
 1. Setup MySQL using `docker-start-mysql.sh`. When the docker container is stopped (using `docker stop mysql`), it will delete itself.
-2. Run the main method from your IDE or `mvn exec:java`. 
+2. Run the main method from your IDE or `mvn exec:java`.
+3. `SELECT * FROM arc2017_sightings` in your favourite SQL tool.

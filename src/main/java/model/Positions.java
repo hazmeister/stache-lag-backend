@@ -19,6 +19,10 @@ public class Positions {
     private double sogKmph; //(Wind) Speed Over Ground
     private double sogKnots;
 
+    //Not used in parsing
+    private int teamSerial;
+    private String teamName;
+
     public boolean isAlert() {
         return alert;
     }
@@ -137,5 +141,31 @@ public class Positions {
 
     public void setSogKmph(double sogKmph) {
         this.sogKmph = sogKmph;
+    }
+
+    public int getTeamSerial() {
+        return teamSerial;
+    }
+
+    public void setTeamSerial(int teamSerial) {
+        this.teamSerial = teamSerial;
+    }
+
+    public String getTeamName() {
+        return teamName;
+    }
+
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
+    }
+
+    public String toString() {
+        String string = "";
+        if(teamName != null) {
+            string += teamName + ": ";
+        } else if(teamSerial != 0) {
+            string += teamSerial;
+        }
+        return string + "(" + longitude + "," + latitude + "), " + altitude;
     }
 }
