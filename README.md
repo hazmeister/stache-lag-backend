@@ -19,4 +19,4 @@ Send us your resulting table, and your code, or better still, push it to a publi
 
 1. Setup MySQL using `docker-start-mysql.sh`. When the docker container is stopped (using `docker stop mysql`), it will delete itself.
 2. Run the main method from your IDE or `mvn exec:java`.
-3. Open the created 
+3. Open the created `averageSightings.csv` file.
