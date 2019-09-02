@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.*;
 
 import static java.sql.DriverManager.getConnection;
-import static java.util.Calendar.*;
 import static util.ConfigHelper.getConfig;
 import static util.DateHelper.addFifteenMinutes;
 import static util.DistanceHelper.generateSightingData;
@@ -29,13 +28,13 @@ public class MySQLHelper {
         String sightingsTable = tablePrefix + "sightings";
 
         connectToDatabase();
-        if(tableExists(sightingsTable)) {
+        if (tableExists(sightingsTable)) {
             dropTable(sightingsTable);
         }
-        if(tableExists(positionsTable)) {
+        if (tableExists(positionsTable)) {
             dropTable(positionsTable);
         }
-        if(tableExists(teamsTable)) {
+        if (tableExists(teamsTable)) {
             dropTable(teamsTable);
         }
 
@@ -48,24 +47,28 @@ public class MySQLHelper {
         populateSightings(raceStart(), raceFinish());
     }
 
-    /**
-     * TODO: Use query to fetch instead (needs rounding):
-     * SELECT MAX(txAt) FROM arc2017_positions;
-     */
     private static Date raceStart() {
-        Calendar calendar = getInstance();
-        calendar.set(2017, NOVEMBER, 19, 8, 0, 0);
-        return new Date(calendar.getTimeInMillis());
+        return raceBoundary("MIN");
     }
 
-    /**
-     * TODO: Use query to fetch instead (needs rounding):
-     * SELECT MIN(txAt) FROM arc2017_positions;
-     */
     private static Date raceFinish() {
-        Calendar calendar = getInstance();
-        calendar.set(2017, DECEMBER, 26, 20, 0, 0);
-        return new Date(calendar.getTimeInMillis());
+        return raceBoundary("MAX");
+    }
+
+    private static Date raceBoundary(String stat) {
+        String query = "SELECT " + stat.toUpperCase() + "(gpsAt) AS boundary FROM " + tablePrefix + "positions";
+        Date date = new Date();
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                date = resultSet.getDate("boundary");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return date;
     }
 
     static void connectToDatabase() {
@@ -80,7 +83,7 @@ public class MySQLHelper {
             System.err.println("Could not connect to MySQL");
             e.printStackTrace();
         }
-        if(connection != null) {
+        if (connection != null) {
             System.out.println("Connection succeeded");
         }
     }
@@ -97,7 +100,7 @@ public class MySQLHelper {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 String match = resultSet.getString("TABLE_NAME");
-                if(match.contentEquals(table)) {
+                if (match.contentEquals(table)) {
                     System.out.println(table + " table already exists");
                     return true;
                 }
@@ -177,7 +180,7 @@ public class MySQLHelper {
      */
     private static void populateTeams(List<Teams> teams) {
         System.out.println("Populating teams table");
-        String query = "INSERT INTO " + tablePrefix + "teams VALUES (" + parameterPlaceholder(3)+ ")";
+        String query = "INSERT INTO " + tablePrefix + "teams VALUES (" + parameterPlaceholder(3) + ")";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             int i = 0;
@@ -201,8 +204,8 @@ public class MySQLHelper {
 
     private static void populatePositions(List<Teams> teams) {
         System.out.println("Populating positions table");
-        String query = "INSERT INTO " + tablePrefix +"positions VALUES (" + parameterPlaceholder(15) + ")";
-        try{
+        String query = "INSERT INTO " + tablePrefix + "positions VALUES (" + parameterPlaceholder(15) + ")";
+        try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             for (Teams team : teams) {
                 System.out.println(" * " + team.getName());
@@ -244,14 +247,14 @@ public class MySQLHelper {
     private static void populateSightings(Date raceStart, Date raceFinish) {
         System.out.println("Populating sighting data:");
         Date date = raceStart;
-        while(date.before(raceFinish)) {
+        while (date.before(raceFinish)) {
             System.out.println(" * Populating sighting at " + date);
             List<Positions> moment = getPositionsForMoment(date);
             generateSightingData(moment, date);
             date = DateHelper.addFourHours(date);
         }
     }
-    
+
     static String parameterPlaceholder(int parameters) {
         return String.join(" ", Collections.nCopies(parameters - 1, "?,")) + " ?";
     }
@@ -284,7 +287,7 @@ public class MySQLHelper {
                 ") and type = 'automatic'\n" +
                 "AND " + tablePrefix + "teams.serial = " + tablePrefix + "positions.serial\n" +
                 "ORDER BY dtfKm";
-        try{
+        try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setTimestamp(1, new Timestamp(date.getTime()));
             preparedStatement.setTimestamp(2, new Timestamp(dateInFifteenMinutes.getTime()));
@@ -306,8 +309,8 @@ public class MySQLHelper {
     }
 
     static void writeSightingsToDB(Date sampleDate, int teamSerial, List<Positions> seen) {
-        String query = "INSERT INTO " + tablePrefix +"sightings VALUES(" + parameterPlaceholder(3)+ ")";
-        try{
+        String query = "INSERT INTO " + tablePrefix + "sightings VALUES(" + parameterPlaceholder(3) + ")";
+        try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             int i = 0;
             for (Positions each : seen) {
@@ -324,6 +327,41 @@ public class MySQLHelper {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
+    public static String getAverageSightingsPerDay() {
+        String query = "SELECT DATE(sightedAt) AS sighted, COUNT(*)/2 AS total FROM " + tablePrefix + "sightings GROUP BY DATE(sightedAt)";
+        StringBuilder csv = new StringBuilder("Date,Average Sightings\n");
+        int totalTeams = getTotalTeams();
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                csv.append(resultSet.getString("sighted"));
+                csv.append(",");
+                int totalSightings = resultSet.getInt("total");
+                csv.append(totalSightings / totalTeams);
+                csv.append("\n");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return csv.toString();
+    }
+
+    private static int getTotalTeams() {
+        String query = "SELECT COUNT(*) AS total FROM " + tablePrefix + "teams";
+        int teams = 0;
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                teams = resultSet.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return teams;
     }
 }

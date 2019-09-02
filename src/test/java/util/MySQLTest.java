@@ -7,6 +7,7 @@ import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static util.JSONParser.parseJSONFile;
+import static util.MySQLHelper.*;
 import static util.MySQLHelper.parameterPlaceholder;
 import static util.MySQLHelper.populateDatabase;
 
@@ -27,5 +28,15 @@ public class MySQLTest {
         assertThat(parameterPlaceholder(4))
                 .as("Parameter total")
                 .isEqualTo("?, ?, ?, ?");
+    }
+
+    @Test
+    public void csvToFile() {
+        connectToDatabase();
+        String filename = "test.csv";
+        FileHelper.stringToFile(filename, getAverageSightingsPerDay());
+        assertThat(new File(filename))
+                .as("CSV file created")
+                .exists();
     }
 }

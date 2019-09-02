@@ -3,3 +3,4 @@ target/
 positions.json
 positions-pretty.json
 *.iml
+*.csv

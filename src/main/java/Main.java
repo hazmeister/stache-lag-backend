@@ -2,7 +2,9 @@ import model.Payload;
 
 import java.io.File;
 
+import static util.FileHelper.stringToFile;
 import static util.JSONParser.parseJSONFile;
+import static util.MySQLHelper.getAverageSightingsPerDay;
 import static util.MySQLHelper.populateDatabase;
 import static util.ZipHelper.unzipFile;
 
@@ -11,5 +13,6 @@ public class Main {
         File jsonFile = unzipFile(new File("positions.json.zip"));
         Payload payload = parseJSONFile(jsonFile);
         populateDatabase(payload);
+        stringToFile("averageSightings.csv", getAverageSightingsPerDay());
     }
 }
